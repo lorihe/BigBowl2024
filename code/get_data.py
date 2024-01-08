@@ -5,7 +5,7 @@ import json
 plays_all = pd.read_csv('../rawdata/plays.csv')
 games_all = pd.read_csv('../rawdata/games.csv')
 players_all = pd.read_csv('../rawdata/players.csv')
-tackles_all = pd.read_csv('../rawdata/tackles.csv')
+tackles_all = pd.read_csv('../newdata/tackles_all_n.csv')
 
 def game(gameId):
     game = games_all[games_all['gameId'] == gameId]
@@ -29,10 +29,8 @@ def play(gameId, playId):
     return play_df
 
 def tracking(gameId, playId):
-    date = games_all[games_all['gameId'] == gameId]['gameDate'].item()
-    date = date.replace('/', '')
-    df = pd.read_csv(f'../newdata/{date}.csv')
-    tracking_df = df[(df['gameId'] == gameId) & (df['playId'] == playId)]
+    df = pd.read_csv(f'../newdata/tracking_game/{gameId}.csv')
+    tracking_df = df[df['playId'] == playId]
     tracking_df = tracking_df.reset_index(drop = True)
     return tracking_df
 

@@ -1,15 +1,14 @@
-import pandas as pd
-import numpy as np
+
 import plotly.graph_objects as go
 
-def plot_field(xlim_l = -0.5, xlim_r = 120.5, los = None, yardstogo = None):
-    shapes = []
+def plot_field(xlim_l = -0.5, xlim_r = 120.5, ablos = None, ygtline = None):
 
+    shapes = []
     for yard in range(20,110,10):
         line = go.layout.Shape(
         type = 'line',
         x0 = yard, y0 = 0, x1 = yard, y1 = 53.3,
-        line = dict(color = 'darkgrey', width = 0.5))
+        line = dict(color = 'grey', width = 0.5))
         shapes.append(line)
 
     ez1 = go.layout.Shape(
@@ -23,21 +22,21 @@ def plot_field(xlim_l = -0.5, xlim_r = 120.5, los = None, yardstogo = None):
         fillcolor = 'lightgrey'
     )
     
-    if los:
+    if ablos:
         losline = go.layout.Shape(
             type = 'line',
-            x0 = los, y0 = 0, x1 = los, y1 = 53.3,
-            line = dict(color = 'RGB(255,215,0)', width = 1)
+            x0 = ablos, y0 = 0, x1 = ablos, y1 = 53.3,
+            line = dict(color = 'RGB(255,215,0)', width = 1.3)
         )
         shapes.append(losline)
         
-    if yardstogo:
-        ytgline = go.layout.Shape(
+    if ygtline:
+        ygtline = go.layout.Shape(
             type = 'line',
-            x0 = yardstogo, y0 = 0, x1 = yardstogo, y1 = 53.3,
-            line = dict(color = 'RGB(255,215,0)', width = 1, dash='dash')
+            x0 = ygtline, y0 = 0, x1 = ygtline, y1 = 53.3,
+            line = dict(color = 'RGB(255,215,0)', width = 1.3, dash='dash')
         )
-        shapes.append(ytgline)
+        shapes.append(ygtline)
 
     for i in range(11, 110, 1):
         lines = [
@@ -50,12 +49,12 @@ def plot_field(xlim_l = -0.5, xlim_r = 120.5, los = None, yardstogo = None):
 
     field_shape = go.layout.Shape(
         type = "rect", x0 = 0, y0 = 0, x1 = 120, y1 = 53.3,
-        line = dict(color = 'dimgrey', width = 1),    
+        line = dict(color = 'black', width = 1),
     )
     shapes.append(field_shape)
     
     layout = go.Layout(
-        xaxis=dict(range=[xlim_l, xlim_r], constrain='domain', showticklabels=False, showgrid=False),
+        xaxis=dict(range=[xlim_l, xlim_r], constrain='range', showticklabels=False, showgrid=False),
         yaxis=dict(range=[-0.5, 54], scaleanchor="x", scaleratio=1, showticklabels=False, showgrid=False),
         shapes = shapes,
         plot_bgcolor="rgba(0,0,0,0)"
@@ -81,5 +80,5 @@ def plot_field(xlim_l = -0.5, xlim_r = 120.5, los = None, yardstogo = None):
             showarrow=False)    
         fig.add_annotation(text1)
         fig.add_annotation(text2)
-    
+
     return fig

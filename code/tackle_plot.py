@@ -4,54 +4,74 @@ import numpy as np
 import plotly.graph_objects as go
 from football_field import plot_field
 
-def plot(tracking_df, date, tacklers, carrier, offense, defense, down, yardstogo, ablos):
+def standardize_tracking(tracking):
+    """
+    Standardize data so all plays are seen as played from left to right
+
+    Parameters:
+    df1 (DataFrame): tracking data of one selected play.
+    Returns:
+    df1 (DataFrame): standardized tracking data of one selected play.
+    """
+    tracking['x'] = 120-tracking['x']
+    tracking['y'] = 53.3-tracking['y']  
+    tracking['dir'] = (tracking['dir'] + 180) % 360
+    tracking['o'] = (tracking['o'] + 180) % 360
+    return tracking
+
+def plot(tracking_df, date, tacklers, carrier, offense, defense, down, yardstogo, ablos, width = 800, height = 600):
     
     # Legend and play info
     fig2 = go.Figure()
-    colors = ['midnightblue', 'lightsteelblue', 'peru', 'burlywood']
+    colors = ['darkblue', '#768cb0', 'sienna', 'burlywood']
     sizes = [20, 12, 20, 12]
-    labels = ['Tackler', 'Defense', 'Carrier', 'Offense']
+    labels = ['Tackler', 'Defence', 'Carrier', 'Offence']
 
     for i in range(4):
         fig2.add_trace(go.Scatter(x=[None], y=[None], mode='markers',
             marker=dict(size=sizes[i], color=colors[i], symbol='arrow', angle = -90),
             name=labels[i], showlegend=True))
-    fig2.update_layout(legend = dict(xanchor = 'center', yanchor = 'bottom', x = 0.5, y = 0, orientation='h'),
-                      width = 800, height = 70, plot_bgcolor="rgba(0,0,0,0)",
+    fig2.update_layout(legend = dict(xanchor = 'center', yanchor = 'bottom',
+                                     x = 0.5, y = 0, orientation='h', font=dict(size=13)),
+                      width = width, height = 70, plot_bgcolor="rgba(0,0,0,0)",
                       xaxis=dict(showticklabels=False), yaxis=dict(showticklabels=False),
                       title = dict(
-                      text = f'Date: {date} | Offense: {offense} | Defense: {defense} | Down: {down} | YTG: {yardstogo}', 
+                      text = f'Date: {date} | Offense: {offense} | Defense: {defense} | Down: {down} | YTG: {yardstogo}',
                       yanchor="bottom", x=0.5, y=0.05),
-                      title_font = dict(size = 12))
-    fig2.show(config={'displayModeBar': False})
+                      title_font = dict(size = 14))
+
 
     # Plot
+    
+    if tracking_df.at[0, 'playDirection'] == 'left':
+        tracking_df = standardize_tracking(tracking_df)
+        ablos = 120-ablos
+        
     tracking_df['color'] = tracking_df.apply(
-        lambda row: 'midnightblue' if (row['nflId'] in tacklers) & (row['club'] == defense)
-                                 else 'lightsteelblue' if row['club'] == defense
-                                 else 'peru' if row['nflId'] == carrier
+        lambda row: 'darkblue' if (row['nflId'] in tacklers) & (row['club'] == defense)
+                                 else '#768cb0' if row['club'] == defense
+                                 else 'sienna' if row['nflId'] == carrier
                                  else 'burlywood' if row['club'] == offense
                                  else 'dimgrey' if row['displayName'] == 'football'
                                  else 'white', axis = 1)   
     
     tracking_df['size'] = tracking_df.apply(
-        lambda row: 18 if (row['nflId'] in tacklers) & (row['club'] == defense)
-                                 else 15 if row['club'] == defense
-                                 else 18 if row['nflId'] == carrier
-                                 else 15 if row['club'] == offense
-                                 else 15 if row['displayName'] == 'football'
+        lambda row: 20 if (row['nflId'] in tacklers) & (row['club'] == defense)
+                                 else 16 if row['club'] == defense
+                                 else 20 if row['nflId'] == carrier
+                                 else 16 if row['club'] == offense
+                                 else 16 if row['displayName'] == 'football'
                                  else 0, axis = 1)       
     
     frames = tracking_df['frameId'].unique().tolist()
     events = tracking_df[['frameId','event']].drop_duplicates()
-    if tracking_df.at[0, 'playDirection'] == 'left':
-        tgline = ablos - yardstogo
-    elif tracking_df.at[0, 'playDirection'] == 'right':
-        tgline = ablos + yardstogo
-    else: tgline = None
 
-    fig = plot_field(min(tracking_df['x'])-10, max(tracking_df['x'])+10, ablos, tgline)
-    
+    tgline = ablos + yardstogo
+    xlim_l = min(tracking_df['x']) -5
+    xlim_r = max(tracking_df['x']) +5
+
+    fig = plot_field(xlim_l, xlim_r, ablos, tgline)
+
     for frame in frames:
         sub1 = tracking_df[(tracking_df['frameId'] == frame) & (tracking_df['displayName'] != 'football')]
         fig.add_trace(
@@ -93,8 +113,9 @@ def plot(tracking_df, date, tacklers, carrier, offense, defense, down, yardstogo
 
     fig.update_layout(
         sliders=sliders, 
-        width=800, height=600,
+        width=width, height=height,
         margin=dict(t=20)
     )
     fig.update_layout(dragmode=False)
-    fig.show(config={'displayModeBar': False})
+    
+    return fig2, fig
